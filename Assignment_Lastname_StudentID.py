@@ -2,11 +2,16 @@
 # Name:       Sandrino Becirbegovic
 # Student ID: 01414464
 
-import pygame, sys, time, random
+import pygame
+import sys
+import time
+import random
 from pygame.locals import *
 from framework import BaseGame
 
 # Recommended Start: init function of Block Class
+
+
 class Block:
     blocknames = [
         "clevelandZ",
@@ -19,29 +24,34 @@ class Block:
     ]
 
     def __init__(self, game, block_name):
-        self.name = random.choice(
-            self.blocknames
-        )  # TODO set name / Can be 'hero', 'teewee', ...
+        self.name = block_name  # TODO set name / Can be 'hero', 'teewee', ...
+        # TODO randomize rotation (e.g. 0, 1, 2, 3; Hint: different number of rotations per block)
         self.rotation = random.randint(
-            0, 3
-        )  # TODO randomize rotation (e.g. 0, 1, 2, 3; Hint: different number of rotations per block)
+            0, len(game.block_list.get(self.name)) - 1)
         self.set_shape(game.block_list[self.name][self.rotation])
         self.x = int(game.board_width / 2) - int(self.width / 2)
         self.y = 0
-        self.color = "purple"  # TODO Set Color correctly / Can be 'red', 'green', ... (see self.blockColors)
+        # "purple"  # TODO Set Color correctly / Can be 'red', 'green', ... (see self.blockColors)
+        self.color = game.block_colors[self.name]
 
     def set_shape(self, shape):
         self.shape = shape
-        self.width = 0  # TODO Calculate the correct width
-        self.height = 0  # TODO Calculate the correct height
+        self.width = len(shape[0])  # TODO Calculate the correct width
+        self.height = len(shape)  # TODO Calculate the correct height
 
     def right_rotation(self):
-        # TODO rotate block once clockwise
-        pass
+        try:
+            self.set_shape(self.shape[self.rotation + 1])
+        except IndexError:
+            self.rotation = 0
+            self.set_shape(self.shape[self.rotation])
 
     def left_rotation(self):
-        # TODO rotate block once counter-clockwise
-        pass
+        try:
+            self.set_shape(self.shape[self.rotation - 1])
+        except IndexError:
+            self.rotation = len(self.shape)
+            self.set_shape(self.shape[self.rotation])
 
 
 class Game(BaseGame):
@@ -76,10 +86,7 @@ class Game(BaseGame):
     # Check if Coordinate given is on board (returns True/False)
     def is_coordinate_on_board(self, x, y):
         # TODO check if coordinate is on playingboard (in boundary of self.boardWidth and self.boardHeight)
-        if x >= 0 and y >= 0 and x <= self.board_width and y <= self.board_height:
-            return True
-        else:
-            return False
+        return (True if x >= 0 and y >= 0 and x <= self.board_width and y <= self.board_height else False)
 
     # Parameters block, x_change (any movement done in X direction), yChange (movement in Y direction)
     # Returns True if no part of the block is outside the Board or collides with another Block
@@ -91,23 +98,27 @@ class Game(BaseGame):
     # Returns True if the line is complete
     def check_line_complete(self, y_coord):
         # TODO check if line on yCoord is complete and can be removed
-        return False if all(e != "." for e in self.board[y_coord]) else True
+        return True if all(e != "." for e in self.gameboard[y_coord]) else False
 
     # Go over all lines and remove those, which are complete
     # Returns Number of complete lines removed
     def remove_complete_line(self):
+        removedLine = 0
         # TODO go over all lines and check if one can be removed
-        for i in range(self.board_height, -1):
-            if all(e != "." for e in self.board[i]) == True:
-                for elem in self.board[i]:
-                    self.board[i][elem] = "."
+        for i in range(self.board_height):
+            if all(e != "." for e in self.gameboard[i]) == True:
+               #                self.board_height = self.board_height - 1
+               #                for elem in self.gameboard[i]:
+                removedLine += 1
+#                    self.gameboard[i].remove(self.gameboard[i][elem])
+        return removedLine
 
     # Create a new random block
     # Returns the newly created Block Class
+
     def get_new_block(self):
         # TODO make block choice random! (Use random.choice out of the list of blocks) see blocknames array
         blockname = random.choice(Block.blocknames)
-        print(blockname)
         block = Block(self, blockname)
         return block
 
@@ -121,7 +132,10 @@ class Game(BaseGame):
         # Points gained: Points per line removed at once times the level modifier!
         # Points per lines removed corresponds to the score_directory
         # The level modifier is 1 higher than the current level.
-        pass
+        levelModifier = level+1
+        pointsPerLine = self.score_dictionary[lines_removed]
+        pointsGained = pointsPerLine * levelModifier
+        self.score += pointsGained
 
     # calculate new Level after the score has changed
     # TODO calculate new level
@@ -147,7 +161,8 @@ def main():
     pygame.init()
     game = Game()
 
-    game.display = pygame.display.set_mode((game.window_width, game.window_height))
+    game.display = pygame.display.set_mode(
+        (game.window_width, game.window_height))
     game.clock = pygame.time.Clock()
     pygame.display.set_caption("Tetris")
 

@@ -47,7 +47,7 @@ class Block:
             self.rotation = 0
             self.shape = rotation_options[self.rotation]
 
-    def left_rotation(self):
+    def left_rotation(self, rotation_options):
         try:
             self.set_shape(self.shape[self.rotation - 1])
         except IndexError:
@@ -129,20 +129,6 @@ class Game(BaseGame):
             self.gameboard[block.y][block.x+i] = block.color
             i += 1
 
-# Was just the first Try... i understood what i had to do wrong....
-#        try:
-#            for e in self.gameboard[block.y + 1]:
-#                if e == self.blank_color and e.index in block.width:
-#                    self.gameboard[block.y].append(
-#                        self.block_list[block.name][block.rotation])
-#        except IndexError:
-#            for e in self.gameboard[block.y]:
-#                if e.index == block.x:
-#                    self.gameboard[block.y][e.index] == u
-#
-#            self.gameboard[block.y].append(
-#                self.block_list[block.name][block.rotation])
-
     def calculate_new_score(self, lines_removed, level):  # TODO calculate new score
         # Points gained: Points per line removed at once times the level modifier!
         # Points per lines removed corresponds to the score_directory
@@ -162,7 +148,7 @@ class Game(BaseGame):
     def set_game_speed(self, speed):
         # TODO set the correct game speed!
         # It starts as defined in base.py and should increase by 1 after a level up.
-        if self.level < self.calculate_new_level(self.score):
+        if self.calculate_new_level(self.score) < self.calculate_new_level(self.score):
             self.speed += 1
         else:
             self.speed = speed

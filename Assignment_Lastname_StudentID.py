@@ -36,21 +36,22 @@ class Block:
 
     def set_shape(self, shape):
         self.shape = shape
-        self.width = len(shape[0])  # TODO Calculate the correct width
+        self.width = max(ele.count("x") for ele in shape)
         self.height = len(shape)  # TODO Calculate the correct height
 
-    def right_rotation(self):
+    def right_rotation(self, rotation_options):
         try:
-            self.set_shape(self.shape[self.rotation + 1])
+            self.rotation += 1
+            self.shape = rotation_options[self.rotation]
         except IndexError:
             self.rotation = 0
-            self.set_shape(self.shape[self.rotation])
+            self.shape = rotation_options[self.rotation]
 
     def left_rotation(self):
         try:
             self.set_shape(self.shape[self.rotation - 1])
         except IndexError:
-            self.rotation = len(self.shape)
+            self.rotation = len(self.shape - 1)
             self.set_shape(self.shape[self.rotation])
 
 
@@ -98,7 +99,7 @@ class Game(BaseGame):
     # Returns True if the line is complete
     def check_line_complete(self, y_coord):
         # TODO check if line on yCoord is complete and can be removed
-        return True if all(e != "." for e in self.gameboard[y_coord]) else False
+        return True if all(e != self.blank_color for e in self.gameboard[y_coord]) else False
 
     # Go over all lines and remove those, which are complete
     # Returns Number of complete lines removed
@@ -106,11 +107,9 @@ class Game(BaseGame):
         removedLine = 0
         # TODO go over all lines and check if one can be removed
         for i in range(self.board_height):
-            if all(e != "." for e in self.gameboard[i]) == True:
-               #                self.board_height = self.board_height - 1
-               #                for elem in self.gameboard[i]:
+            if self.check_line_complete(i):
                 removedLine += 1
-#                    self.gameboard[i].remove(self.gameboard[i][elem])
+        self.calculate_new_score(removedLine, self.level)
         return removedLine
 
     # Create a new random block
@@ -125,9 +124,25 @@ class Game(BaseGame):
     def add_block_to_board(self, block):
         # TODO once block is not falling, place it on the gameboard
         #  add Block to the designated Location on the board once it stopped moving
-        pass
+        i = 0
+        while i < block.width:
+            self.gameboard[block.y][block.x+i] = block.color
+            i += 1
 
-    # calculate new Score after a line has been removed
+# Was just the first Try... i understood what i had to do wrong....
+#        try:
+#            for e in self.gameboard[block.y + 1]:
+#                if e == self.blank_color and e.index in block.width:
+#                    self.gameboard[block.y].append(
+#                        self.block_list[block.name][block.rotation])
+#        except IndexError:
+#            for e in self.gameboard[block.y]:
+#                if e.index == block.x:
+#                    self.gameboard[block.y][e.index] == u
+#
+#            self.gameboard[block.y].append(
+#                self.block_list[block.name][block.rotation])
+
     def calculate_new_score(self, lines_removed, level):  # TODO calculate new score
         # Points gained: Points per line removed at once times the level modifier!
         # Points per lines removed corresponds to the score_directory
@@ -137,26 +152,26 @@ class Game(BaseGame):
         pointsGained = pointsPerLine * levelModifier
         self.score += pointsGained
 
-    # calculate new Level after the score has changed
     # TODO calculate new level
     def calculate_new_level(self, score):
-        # The level generally corresponds to the score divided by 300 points.
-        # 300 -> level 1; 600 -> level 2; 900 -> level 3
-        # TODO increase gamespeed by 1 on level up only
         if score % 300 == 0:
-            level = score / 300
-            return level
-
+            self.level = int(score / 300)
+        return self.level
     # set the current game speed
+
     def set_game_speed(self, speed):
         # TODO set the correct game speed!
         # It starts as defined in base.py and should increase by 1 after a level up.
-        pass
-
+        if self.level < self.calculate_new_level(self.score):
+            self.speed += 1
+        else:
+            self.speed = speed
 
 # -------------------------------------------------------------------------------------
 # Do not modify the code below, your implementation should be done above
 # -------------------------------------------------------------------------------------
+
+
 def main():
     pygame.init()
     game = Game()

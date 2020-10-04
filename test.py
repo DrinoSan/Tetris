@@ -1,4 +1,5 @@
-import unittest, pygame
+import unittest
+import pygame
 from Assignment_Lastname_StudentID import Block, Game
 
 
@@ -57,7 +58,8 @@ class TestBlock(unittest.TestCase):
         block = self.game.get_new_block()
         self.assertTrue(
             type(block) is Block,
-            msg="Returnvalue {} is not <class 'main.Block'>".format(type(block)),
+            msg="Returnvalue {} is not <class 'main.Block'>".format(
+                type(block)),
         )
 
     # Public Test 4
@@ -140,7 +142,8 @@ class TestBlock(unittest.TestCase):
             ]
         )
 
-        self.assertTrue(res == self.game.gameboard, msg="Block is not correctly placed")
+        self.assertTrue(res == self.game.gameboard,
+                        msg="Block is not correctly placed")
 
     # Public Test 9
     def testRotateRight(self):

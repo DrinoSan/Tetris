@@ -1,4 +1,5 @@
-import pygame, sys
+import pygame
+import sys
 from pygame.locals import *
 
 
@@ -82,8 +83,10 @@ class BaseGame:
         self.box_size = 20
         self.board_width = 10
         self.board_height = 18
-        self.margin = int((self.window_width - self.board_width * self.box_size) / 2)
-        self.top_margin = self.window_height - (self.board_height * self.box_size) - 5
+        self.margin = int(
+            (self.window_width - self.board_width * self.box_size) / 2)
+        self.top_margin = self.window_height - \
+            (self.board_height * self.box_size) - 5
         self.display = 0
         self.clock = 0
         self.speed = 5
@@ -128,7 +131,7 @@ class BaseGame:
         )
         for x in range(self.board_width):
             for y in range(self.board_height):
-                self.draw_cell(x, y, self.gameboard[x][y])
+                self.draw_cell(x, y, self.gameboard[y][x])
 
     # Do not modify
     def get_empty_board(self):
@@ -192,7 +195,8 @@ class BaseGame:
         rect = score.get_rect()
         rect.topleft = (20, 80)
         self.display.blit(score, rect)
-        text = self.font.render("{}".format(self.score), True, self.colors["white"])
+        text = self.font.render("{}".format(self.score),
+                                True, self.colors["white"])
         rect = text.get_rect()
         rect.topleft = (20, 100)
         self.display.blit(text, rect)
@@ -227,7 +231,8 @@ class BaseGame:
         displ = self.big_font.render(msg, True, self.colors["white"])
         rect = displ.get_rect()
 
-        rect.center = (int(self.window_width / 2) - 2, int(self.window_height / 2) - 2)
+        rect.center = (int(self.window_width / 2) - 2,
+                       int(self.window_height / 2) - 2)
         self.display.blit(displ, rect)
 
         while self.check_key_press() == None:

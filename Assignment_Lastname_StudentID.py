@@ -32,6 +32,7 @@ class Block:
         self.y = 0
         # "purple"  # TODO Set Color correctly / Can be 'red', 'green', ... (see self.blockColors)
         self.color = game.block_colors[self.name]
+        self.maxBlockRot = len(game.block_list[self.name]) - 1
 
     def set_shape(self, shape):
         self.shape = shape
@@ -53,26 +54,24 @@ class Block:
                     endVal = len(e) - 1
         endVal += 1
         width = endVal - startVal
-        print("STARTVAL = ", startVal)
-        print("EndVal: ", endVal)
-        print("Width: ", width)
-        print(self.name)
         return width
 
     def right_rotation(self, rotation_options):
         try:
             self.rotation += 1
-            self.shape = rotation_options[self.rotation]
+            self.set_shape(rotation_options[self.rotation])
         except IndexError:
             self.rotation = 0
-            self.shape = rotation_options[self.rotation]
+            self.set_shape(rotation_options[self.rotation])
 
     def left_rotation(self, rotation_options):
         try:
-            self.shape = rotation_options[self.rotation - 1]
+            self.rotation -= 1
+            self.set_shape(rotation_options[self.rotation])
         except IndexError:
-            self.rotation = len(self.shape - 1)
-            self.shape = rotation_options[self.rotation]
+            self.rotation = self.maxBlockRot
+            self.set_shape(rotation_options[self.rotation])
+            print(self.rotation)
 
 
 class Game(BaseGame):
@@ -118,7 +117,6 @@ class Game(BaseGame):
             if keys[K_e]:
                 current_block.right_rotation(
                     self.block_list[current_block.name])
-                print(current_block.width)
             if keys[K_LEFT]:
                 self.is_block_on_valid_position(
                     current_block, -1, current_block.y)

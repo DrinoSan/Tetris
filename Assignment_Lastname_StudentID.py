@@ -26,8 +26,7 @@ class Block:
     def __init__(self, game, block_name):
         self.name = block_name  # TODO set name / Can be 'hero', 'teewee', ...
         # TODO randomize rotation (e.g. 0, 1, 2, 3; Hint: different number of rotations per block)
-        self.rotation = random.randint(
-            0, len(game.block_list.get(self.name)) - 1)
+        self.rotation = random.randint(0, len(game.block_list[self.name]) - 1)
         self.set_shape(game.block_list[self.name][self.rotation])
         self.x = int(game.board_width / 2) - int(self.width / 2)
         self.y = 0
@@ -49,13 +48,22 @@ class Block:
 
     def left_rotation(self, rotation_options):
         try:
-            self.set_shape(self.shape[self.rotation - 1])
+            self.shape = rotation_options[self.rotation - 1]
         except IndexError:
             self.rotation = len(self.shape - 1)
-            self.set_shape(self.shape[self.rotation])
+            self.shape = rotation_options[self.rotation]
 
 
 class Game(BaseGame):
+    pygame.init()
+#############################
+
+    def pauseGame(self):
+        while True:
+            key = pygame.key.get_pressed()
+            if key[K_p]:
+                return
+
     def run_game(self):
         self.board = self.get_empty_board()
         fall_time = time.time()
@@ -72,6 +80,35 @@ class Game(BaseGame):
         while True:
             self.test_quit_game()
             # TODO Game Logic: implement key events & move blocks (Hint: check if move is valid/block is on the Board)
+
+            # Main event loop
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+
+                    # print(event)
+
+            keys = pygame.key.get_pressed()
+            if keys[K_q]:
+                current_block.left_rotation(
+                    self.block_list[current_block.name])
+            if keys[K_e]:
+                current_block.right_rotation(
+                    self.block_list[current_block.name])
+            if keys[K_LEFT]:
+                current_block.x -= 1
+            if keys[K_RIGHT]:
+                current_block.x += 1
+            if keys[K_DOWN]:
+                current_block.y += 3
+            if keys[K_p]:
+                self.pauseGame()
+
+            # speed
+            self.is_block_on_valid_position(current_block, 1, 1)
+
+            #current_block.y += 1
 
             # Draw after game logic
             self.display.fill(self.background)
@@ -94,9 +131,9 @@ class Game(BaseGame):
     def is_block_on_valid_position(self, block, x_change=0, y_change=0):
         # TODO check if block is on valid position after change in x or y direction
         return False
+        # Check if the line on y Coordinate is complete
+        # Returns True if the line is complete
 
-    # Check if the line on y Coordinate is complete
-    # Returns True if the line is complete
     def check_line_complete(self, y_coord):
         # TODO check if line on yCoord is complete and can be removed
         return True if all(e != self.blank_color for e in self.gameboard[y_coord]) else False

@@ -35,8 +35,29 @@ class Block:
 
     def set_shape(self, shape):
         self.shape = shape
-        self.width = max(ele.count("x") for ele in shape)
+        # max(ele.count("x") for ele in shape)
+        self.width = self.getWidth(self.shape)
         self.height = len(shape)  # TODO Calculate the correct height
+
+    def getWidth(self, shape):
+        startVal = 0
+        endVal = 0
+        for e in shape:
+            for idx, val in enumerate(e):
+                print(idx, " ", val)
+                if val != "x" and idx < startVal:
+                    startVal = idx
+                if val == "." and idx > endVal:
+                    endVal = idx
+                else:
+                    endVal = len(e) - 1
+        endVal += 1
+        width = endVal - startVal
+        print("STARTVAL = ", startVal)
+        print("EndVal: ", endVal)
+        print("Width: ", width)
+        print(self.name)
+        return width
 
     def right_rotation(self, rotation_options):
         try:
@@ -82,33 +103,37 @@ class Game(BaseGame):
             # TODO Game Logic: implement key events & move blocks (Hint: check if move is valid/block is on the Board)
 
             # Main event loop
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
+#            for event in pygame.event.get():
+#                if event.type == pygame.QUIT:
+#                    pygame.quit()
+#                    exit()
 
-                    # print(event)
+            # print(event)
 
             keys = pygame.key.get_pressed()
             if keys[K_q]:
                 current_block.left_rotation(
                     self.block_list[current_block.name])
+                print(current_block.width)
             if keys[K_e]:
                 current_block.right_rotation(
                     self.block_list[current_block.name])
+                print(current_block.width)
             if keys[K_LEFT]:
+                self.is_block_on_valid_position(
+                    current_block, -1, current_block.y)
                 current_block.x -= 1
             if keys[K_RIGHT]:
+                self.is_block_on_valid_position(
+                    current_block, 1, current_block.y)
                 current_block.x += 1
             if keys[K_DOWN]:
                 current_block.y += 3
             if keys[K_p]:
+                print(current_block.width)
                 self.pauseGame()
 
             # speed
-            self.is_block_on_valid_position(current_block, 1, 1)
-
-            #current_block.y += 1
 
             # Draw after game logic
             self.display.fill(self.background)
@@ -129,8 +154,24 @@ class Game(BaseGame):
     # Parameters block, x_change (any movement done in X direction), yChange (movement in Y direction)
     # Returns True if no part of the block is outside the Board or collides with another Block
     def is_block_on_valid_position(self, block, x_change=0, y_change=0):
+        try:
+            for i in range(len(self.gameboard[block.y])-1):
+                print("BlockX = ", block.x)
+                print("el: ", i)
+                if self.gameboard[block.y][i] == block.x and self.gameboard[block.y][i] != self.blank_color:
+                    while j < block.width:
+                        if self.gameboard[current_block.height + 1][block.x + j] != self.blank_color:
+                            print("CRASHHHHHHHHHHHHHHHH with Block")
+                if block.x + x_change < 0:
+                    block.x -= x_change
+                    print("LINKS")
+                if block.x + block.width + x_change > self.board_width:
+                    block.x -= x_change
+                    print("Rechts")
+
+        except IndexError:
+            block.y = 0
         # TODO check if block is on valid position after change in x or y direction
-        return False
         # Check if the line on y Coordinate is complete
         # Returns True if the line is complete
 

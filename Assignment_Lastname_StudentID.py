@@ -37,24 +37,28 @@ class Block:
     def set_shape(self, shape):
         self.shape = shape
         # max(ele.count("x") for ele in shape)
-        self.width = self.getWidth(self.shape)
+        self.width = self.getWidth(self.shape)[0]
+        self.shapeStartX = self.getWidth(self.shape)[1]
+        self.shapeEndX = self.getWidth(self.shape)[2]
         self.height = len(shape)  # TODO Calculate the correct height
 
     def getWidth(self, shape):
-        startVal = 0
+        startVal = 1000
         endVal = 0
         for e in shape:
             for idx, val in enumerate(e):
-                print(idx, " ", val)
-                if val != "x" and idx < startVal:
+                if val == "x" and idx < startVal:
                     startVal = idx
+            for idx, val in enumerate(e):
                 if val == "." and idx > endVal:
                     endVal = idx
-                else:
-                    endVal = len(e) - 1
-        endVal += 1
+                if val == "x" and idx == e.index(val):
+                    endVal = len(shape[0])
+                    break
+
+        idx = idx+1
         width = endVal - startVal
-        return width
+        return [width, startVal, endVal]
 
     def right_rotation(self, rotation_options):
         try:
@@ -71,7 +75,6 @@ class Block:
         except IndexError:
             self.rotation = self.maxBlockRot
             self.set_shape(rotation_options[self.rotation])
-            print(self.rotation)
 
 
 class Game(BaseGame):
@@ -113,24 +116,19 @@ class Game(BaseGame):
             if keys[K_q]:
                 current_block.left_rotation(
                     self.block_list[current_block.name])
-                print(current_block.width)
             if keys[K_e]:
                 current_block.right_rotation(
                     self.block_list[current_block.name])
             if keys[K_LEFT]:
-                self.is_block_on_valid_position(
-                    current_block, -1, current_block.y)
                 current_block.x -= 1
             if keys[K_RIGHT]:
-                self.is_block_on_valid_position(
-                    current_block, 1, current_block.y)
                 current_block.x += 1
             if keys[K_DOWN]:
-                current_block.y += 3
+                current_block.y += 1
             if keys[K_p]:
-                print(current_block.width)
                 self.pauseGame()
 
+            self.is_block_on_valid_position(current_block, 1, 1)
             # speed
 
             # Draw after game logic
@@ -145,30 +143,22 @@ class Game(BaseGame):
             self.clock.tick(self.speed)
 
     # Check if Coordinate given is on board (returns True/False)
-    def is_coordinate_on_board(self, x, y):
+    def is_coordinate_on_board(self, block):
+        #        print(block.shape)
+        #        print("BLOCK STARTS in X at: ", block.shapeStartX)
+        #        print("Block ENDS in X at: ", block.shapeEndX)
         # TODO check if coordinate is on playingboard (in boundary of self.boardWidth and self.boardHeight)
-        return (True if x >= 0 and y >= 0 and x <= self.board_width and y <= self.board_height else False)
+        return (True if block.x >= 0 and block.y >= 0 and block.x + block.width <= self.board_width and block.y + block.height <= self.board_height else False)
 
     # Parameters block, x_change (any movement done in X direction), yChange (movement in Y direction)
     # Returns True if no part of the block is outside the Board or collides with another Block
     def is_block_on_valid_position(self, block, x_change=0, y_change=0):
-        try:
-            for i in range(len(self.gameboard[block.y])-1):
-                print("BlockX = ", block.x)
-                print("el: ", i)
-                if self.gameboard[block.y][i] == block.x and self.gameboard[block.y][i] != self.blank_color:
-                    while j < block.width:
-                        if self.gameboard[current_block.height + 1][block.x + j] != self.blank_color:
-                            print("CRASHHHHHHHHHHHHHHHH with Block")
-                if block.x + x_change < 0:
-                    block.x -= x_change
-                    print("LINKS")
-                if block.x + block.width + x_change > self.board_width:
-                    block.x -= x_change
-                    print("Rechts")
+        #        print(block.shape)
+        #        print("BlockY COord: ", block.y)
+        #        print("BlockX COord: ", block.x)
+        if self.is_coordinate_on_board(block) == False:
+            print("outSIDE")
 
-        except IndexError:
-            block.y = 0
         # TODO check if block is on valid position after change in x or y direction
         # Check if the line on y Coordinate is complete
         # Returns True if the line is complete

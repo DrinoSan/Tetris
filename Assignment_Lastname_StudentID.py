@@ -116,19 +116,36 @@ class Game(BaseGame):
             if keys[K_q]:
                 current_block.left_rotation(
                     self.block_list[current_block.name])
+                self.rotationCheck(
+                    current_block, self.board_width, self.board_height)
+                if self.is_rotation_valid(current_block) == True:
+                    pass
+                # TODO noch eine weiter abfrage um zu sehen ob die rotation erlaubt ist ansonsten wird die rotation zur�ckgesetzt
             if keys[K_e]:
                 current_block.right_rotation(
                     self.block_list[current_block.name])
+                self.rotationCheck(
+                    current_block, self.board_width, self.board_height)
             if keys[K_LEFT]:
-                current_block.x -= 1
+                if self.is_block_on_valid_position(current_block, -1, 0):
+                    current_block.x -= 1
             if keys[K_RIGHT]:
-                current_block.x += 1
+                if self.is_block_on_valid_position(current_block, 1, 0):
+                    current_block.x += 1
             if keys[K_DOWN]:
                 current_block.y += 1
             if keys[K_p]:
                 self.pauseGame()
 
             self.is_block_on_valid_position(current_block, 1, 1)
+            print(current_block.y)
+            print("BLOCK HEIGHT", current_block.height)
+            if self.is_block_on_bottom(current_block) == True:
+                print("HHHHHHHHHHHHHHHHHIER")
+                self.draw_block_bottom(current_block)
+                current_block = next_block
+                next_block = self.get_new_block()
+            # self.add_block_to_board(current_block)
             # speed
 
             # Draw after game logic
@@ -142,27 +159,37 @@ class Game(BaseGame):
             self.set_game_speed(self.speed)
             self.clock.tick(self.speed)
 
-    # Check if Coordinate given is on board (returns True/False)
-    def is_coordinate_on_board(self, block):
-        #        print(block.shape)
-        #        print("BLOCK STARTS in X at: ", block.shapeStartX)
-        #        print("Block ENDS in X at: ", block.shapeEndX)
-        # TODO check if coordinate is on playingboard (in boundary of self.boardWidth and self.boardHeight)
-        return (True if block.x >= 0 and block.y >= 0 and block.x + block.width <= self.board_width and block.y + block.height <= self.board_height else False)
+    def rotationCheck(self, block, width, height):
+        while block.x < 0 or block.x + block.width > width or block.y < 0:
+            if block.x < 0:
+                block.x += 1
+            if block.x + block.width > width:
+                block.x -= 1
+
+            if block.y < 0:
+                block.y += 1
+
+    def is_rotation_valid(self, block):
+        pass
+        # Check if Coordinate given is on board (returns True/False)
+
+    def is_block_on_bottom(self, block):
+        return (True if block.y + block.height == self.board_height else False)
+
+    def is_coordinate_on_board(self, block, x_change, y_change):
+        return (True if block.x + x_change >= 0 and block.y + y_change + block.height >= 0 and block.x + x_change + block.width <= self.board_width and block.y + y_change + block.height <= self.board_height else False)
 
     # Parameters block, x_change (any movement done in X direction), yChange (movement in Y direction)
     # Returns True if no part of the block is outside the Board or collides with another Block
     def is_block_on_valid_position(self, block, x_change=0, y_change=0):
-        #        print(block.shape)
-        #        print("BlockY COord: ", block.y)
-        #        print("BlockX COord: ", block.x)
-        if self.is_coordinate_on_board(block) == False:
-            print("outSIDE")
+        if self.is_coordinate_on_board(block, x_change, y_change) == True:
+            print("ISt VALIDE")
+            return True
+        else:
+            print("IST INVALIDE OUTSIE")
+            False
 
-        # TODO check if block is on valid position after change in x or y direction
-        # Check if the line on y Coordinate is complete
-        # Returns True if the line is complete
-
+    # TODO check if block is on valid position after change in x or y direction
     def check_line_complete(self, y_coord):
         # TODO check if line on yCoord is complete and can be removed
         return True if all(e != self.blank_color for e in self.gameboard[y_coord]) else False
@@ -187,13 +214,32 @@ class Game(BaseGame):
         block = Block(self, blockname)
         return block
 
+    def draw_block_bottom(self, block):
+        block_idx_range = range(block.x, (block.x + block.width))
+        j = 0
+        while j < block.height:
+            for idx, _ in enumerate(self.gameboard[block.height]):
+                if idx in block_idx_range:
+                    i = 0
+                    while i < block.width:
+                        if block.shape[j][i] == "x":
+                            self.gameboard[block.y+j][block.x+i] = block.color
+                        i += 1
+            j += 1
+
     def add_block_to_board(self, block):
         # TODO once block is not falling, place it on the gameboard
         #  add Block to the designated Location on the board once it stopped moving
-        i = 0
-        while i < block.width:
-            self.gameboard[block.y][block.x+i] = block.color
-            i += 1
+        block_idx_range = range(block.x, (block.x + block.width))
+        for idx, val in enumerate(self.gameboard[block.height+1]):
+            if val != self.blank_color or "." and idx in block_idx_range:
+                i = 0
+                while i < block.width:
+                    if self.gameboard[block.y][block.x+i] == "x":
+                        self.gameboard[block.y][block.x+i] == block.color
+                    else:
+                        self.gameboard[block.y][block.x+i] == self.blank_color
+                    i += 1
 
     def calculate_new_score(self, lines_removed, level):  # TODO calculate new score
         # Points gained: Points per line removed at once times the level modifier!

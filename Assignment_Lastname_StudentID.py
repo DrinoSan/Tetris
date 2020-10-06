@@ -138,14 +138,15 @@ class Game(BaseGame):
                 self.pauseGame()
 
             self.is_block_on_valid_position(current_block, 1, 1)
-            print(current_block.y)
-            print("BLOCK HEIGHT", current_block.height)
             if self.is_block_on_bottom(current_block) == True:
-                print("HHHHHHHHHHHHHHHHHIER")
                 self.draw_block_bottom(current_block)
                 current_block = next_block
                 next_block = self.get_new_block()
-            # self.add_block_to_board(current_block)
+
+            if self.check_collision(current_block) == True:
+                self.add_block_to_board(current_block)
+                current_block = next_block
+                next_block = self.get_new_block()
             # speed
 
             # Draw after game logic
@@ -179,14 +180,13 @@ class Game(BaseGame):
     def is_coordinate_on_board(self, block, x_change, y_change):
         return (True if block.x + x_change >= 0 and block.y + y_change + block.height >= 0 and block.x + x_change + block.width <= self.board_width and block.y + y_change + block.height <= self.board_height else False)
 
-    # Parameters block, x_change (any movement done in X direction), yChange (movement in Y direction)
-    # Returns True if no part of the block is outside the Board or collides with another Block
+        # Parameters block, x_change (any movement done in X direction), yChange (movement in Y direction)
+        # Returns True if no part of the block is outside the Board or collides with another Block
+
     def is_block_on_valid_position(self, block, x_change=0, y_change=0):
         if self.is_coordinate_on_board(block, x_change, y_change) == True:
-            print("ISt VALIDE")
             return True
         else:
-            print("IST INVALIDE OUTSIE")
             False
 
     # TODO check if block is on valid position after change in x or y direction
@@ -215,7 +215,8 @@ class Game(BaseGame):
         return block
 
     def draw_block_bottom(self, block):
-        block_idx_range = range(block.x, (block.x + block.width))
+        block_idx_range = [*range(block.x, (block.x + block.width), 1)]
+
         j = 0
         while j < block.height:
             for idx, _ in enumerate(self.gameboard[block.height]):
@@ -227,19 +228,34 @@ class Game(BaseGame):
                         i += 1
             j += 1
 
+    def check_collision(self, block):
+        block_idx_range = [*range(block.x, (block.x + block.width), 1)]
+        block_idx_y_range = [*range(block.y, block.y + block.height, 1)]
+        print("WERTE VON Y AM BOARD: ", block_idx_y_range)
+        print("Werte von X am BOARD; ", block_idx_range)
+        for idx_of_Block_in_Y, val_in_y in enumerate(block_idx_y_range):
+            print(idx_of_Block_in_Y, "   ", val_in_y)
+            for idx_of_Block_in_X, val_in_x in enumerate(block_idx_range):
+                print(idx_of_Block_in_X, "    ", val_in_x)
+                print()
+                if (block.shape[block_idx_y_range.index(val_in_y)][block_idx_range.index(val_in_x)] == "x" and
+                        self.gameboard[val_in_y+1][val_in_x] != "."):
+                    return True
+
     def add_block_to_board(self, block):
         # TODO once block is not falling, place it on the gameboard
         #  add Block to the designated Location on the board once it stopped moving
-        block_idx_range = range(block.x, (block.x + block.width))
-        for idx, val in enumerate(self.gameboard[block.height+1]):
-            if val != self.blank_color or "." and idx in block_idx_range:
-                i = 0
-                while i < block.width:
-                    if self.gameboard[block.y][block.x+i] == "x":
-                        self.gameboard[block.y][block.x+i] == block.color
-                    else:
-                        self.gameboard[block.y][block.x+i] == self.blank_color
-                    i += 1
+        block_idx_range = [*range(block.x, (block.x + block.width), 1)]
+        j = 0
+        while j < block.height:
+            for idx, _ in enumerate(self.gameboard[block.y + j]):
+                if idx in block_idx_range:
+                    i = 0
+                    while i < block.width:
+                        if block.shape[j][i] == "x":
+                            self.gameboard[block.y+j][block.x+i] = block.color
+                        i += 1
+            j += 1
 
     def calculate_new_score(self, lines_removed, level):  # TODO calculate new score
         # Points gained: Points per line removed at once times the level modifier!
